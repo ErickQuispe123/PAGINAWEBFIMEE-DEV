@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
+import { GoogleGenAI } from "@google/genai";
 import { 
   MessageCircle, 
   X, 
@@ -11,6 +12,49 @@ import {
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 
+function GenerarPrompt(entrada: string):string {
+  // cuerpo
+  return `
+          Eres un asistente virtual para la Facultad de Ingeniería Mecánica, Eléctrica y Electrónica (FIMEE) 
+          de la Universidad Nacional San Luis Gonnzaga De Ica.
+
+          Responde de manera clara y concisa a las preguntas relacionadas con la facultad, como información 
+          sobre carreras, contacto, etc.
+
+          Solo responde a consultas o comentarios que conciernan a la facultad y evita temas no relacionados. 
+          Si la consulta no es relevante, responde con un mensaje educado indicando que no puedes ayudar con 
+          ese tema.
+
+          Lo que sabes:
+            - Carreas disponibles: Ing. Mecanica Electrica, Ing. Electronica
+            - Proximo Examen de Admision: Aun no hay fecha.
+            - Direccion: Av. Los Maestros S/N - Ica.
+            - Correo: mesadepartes@unica.edu.pe
+            - Tel: (056) 284399
+
+          La Facultad de Ingeniería Mecánica Eléctrica y Electrónica (FIMEE) de la Universidad Nacional "San Luis Gonzaga" es una institución con 58 años de trayectoria dedicada a la formación de ingenieros competitivos en las regiones de Ica, Ayacucho, Huancavelica y Lima Provincias.
+
+          Estructura Académica y Evolución
+          Fundada originalmente en 1963, la facultad ha evolucionado mediante hitos normativos clave hasta consolidar su estructura actual:
+
+          Programas Vigentes: Ingeniería Mecánica y Eléctrica (desde 1963) e Ingeniería Electrónica (desde 1998).
+
+          Departamentos: Cuenta con tres unidades académicas: 1) Electricidad y Electrónica, 2) Energía y Producción, y 3) Ciencias de Investigación de la Ingeniería.
+
+          Cuerpo Docente y Calidad
+          La formación está liderada por ingenieros altamente calificados, en su mayoría con grados de Magíster y Doctor. Este capital humano garantiza una actualización tecnológica constante y una enseñanza basada en la experiencia técnica y la solidez científica.
+
+          Impacto y Resultados
+          La FIMEE se distingue por el alto índice de empleabilidad de sus egresados, quienes ocupan cargos de relevancia en empresas nacionales e internacionales o lideran sus propios emprendimientos, impulsando el desarrollo sostenible y la innovación tecnológica.
+
+          Entrada del usuario: ${entrada}
+        `;
+}
+
+const APIKEY = "AIzaSyBmW-7fqLQwJegpyKDmke0rBlg6lOe_pLk";
+let session = new GoogleGenAI({
+  apiKey: APIKEY
+})
 interface Message {
   id: string;
   text: string;
@@ -49,16 +93,21 @@ export function ChatbotFimee() {
     setMessages(prev => [...prev, userMessage]);
     setInput('');
 
-    // Simulación de respuesta con error como se ve en la imagen de referencia
-    setTimeout(() => {
-      const errorMessage: Message = {
+    session.models.generateContent({
+      model: "gemini-2.5-flash",
+      contents: GenerarPrompt(userMessage.text),
+    })
+    .then((res) => {
+      console.log(res.text)
+      const botMessage: Message = {
         id: (Date.now() + 1).toString(),
-        text: 'Error interno del chatbot',
-        sender: 'bot',
-        isError: true
+        text: res.text ?? 'Lo siento, no pude generar una respuesta en este momento.',
+        sender: 'bot'
       };
-      setMessages(prev => [...prev, errorMessage]);
-    }, 1000);
+      setMessages(prev => [...prev, botMessage]);
+    }).catch((e) => {
+      console.log(e)
+    })
   };
 
   return (
