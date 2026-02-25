@@ -98,7 +98,7 @@ function GenerarPrompt(entrada: string):string {
         `;
 }
 
-const APIKEY = "AIzaSyB1HpJ74yfLQbQe8L-8O47qlnYgDdqj8Ss";
+const APIKEY = "AIzaSyCZ8fXAUiUodsqItBWf5-MW5RJvoJ5ku24";
 let session = new GoogleGenAI({
   apiKey: APIKEY
 })
